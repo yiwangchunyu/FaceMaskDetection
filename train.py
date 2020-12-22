@@ -7,10 +7,11 @@ import numpy as np
 from dataset import MyDataset, train_root, test_root, my_collate
 from nets.loss import YOLOLoss
 from nets.yolo4 import YoloBody
+from utils.display import plot_loss_curve
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input_shape', type=int, default=416, help='input image shape width=height')
-parser.add_argument('--batch_size', type=int, default=1, help='')
+parser.add_argument('--batch_size', type=int, default=8, help='')
 parser.add_argument('--num_workers', type=int, default=0, help='')
 parser.add_argument('--nepoch', type=int, default=30, help='')
 parser.add_argument('--train_data_root', type=str, default='data/train', help='')
@@ -45,6 +46,7 @@ def train():
     yolo_losses = []
     for i in range(3):
         yolo_losses.append(YOLOLoss(np.reshape(anchors, [-1, 2]), num_classes, (args.input_shape, args.input_shape), 0.3, args.gpu))
+
     train_data = MyDataset(train_root,input_shape=(args.input_shape,args.input_shape))
     test_data = MyDataset(test_root,input_shape=(args.input_shape,args.input_shape))
 
@@ -78,6 +80,7 @@ def train():
 
     train_losses=[]
     test_losses=[]
+    min_loss=1e10
     for epoch in range(args.nepoch):
         train_loss=0
         for i, data in enumerate(train_loader):
@@ -95,6 +98,7 @@ def train():
             lr_scheduler.step()
 
             train_loss+=loss.item()
+            train_losses.append(loss.item())
             print("epoch:%d/%d, batch:%d/%d, train_loss:%f"%(epoch, args.nepoch, i, len(train_loader), loss.item()))
         train_loss/=len(train_loader)
 
@@ -112,9 +116,15 @@ def train():
                     losses.append(loss_item[0])
                 loss = sum(losses)
                 test_loss+=loss.item()
-        test_loss/=len(test_loader)
+                print("epoch:%d/%d, batch:%d/%d, test_loss:%f" % (epoch, args.nepoch, i_test, len(test_loader), loss.item()))
 
+        test_loss/=len(test_loader)
+        test_losses.append(test_loss)
+
+        if test_loss<min_loss:
+            torch.save(net.state_dict(), 'weights/face_mask_weights.pth')
         print("epoch:%d/%d, train_loss:%f， test_loss:%f" % (epoch, args.nepoch, train_loss, test_loss))
+    plot_loss_curve(train_losses,test_losses,len(train_loader))
 
 if __name__=="__main__":
     train()
