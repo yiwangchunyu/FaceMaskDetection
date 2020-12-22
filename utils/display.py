@@ -12,8 +12,8 @@ def show_img_cv2(img, label):
         print(label_draw[id,4], label_draw[id, 2]-label_draw[id, 0],label_draw[id, 3]-label_draw[id, 1])
         img_draw = cv2.rectangle(img_draw, (label_draw[id, 0], label_draw[id, 1]), (label_draw[id, 2], label_draw[id, 3]),
                                  label_color[label_draw[id, 4]], 1)
-        # img_draw=cv2.putText(img_draw, ID2CLASS[label_draw[id, 4]], (label_draw[id, 0], label_draw[id, 1]-2),
-        #                      cv2.FONT_HERSHEY_SIMPLEX, 0.3, label_color[label_draw[id, 4]], 1)
+        img_draw=cv2.putText(img_draw, ID2CLASS[label_draw[id, 4]], (label_draw[id, 0], label_draw[id, 1]-2),
+                             cv2.FONT_HERSHEY_SIMPLEX, 0.3, label_color[label_draw[id, 4]], 1)
     cv2.imshow('img', img_draw)
     cv2.waitKey(0)
 

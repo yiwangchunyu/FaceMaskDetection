@@ -78,6 +78,11 @@ def train():
     optimizer = optim.Adam(net.parameters(), lr=1e-3, weight_decay=5e-4)
     lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5, eta_min=1e-5)
 
+    # 冻结backbone
+    for param in model.backbone.parameters():
+        param.requires_grad = False
+
+    # 开始训练
     train_losses=[]
     test_losses=[]
     min_loss=1e10
@@ -116,13 +121,13 @@ def train():
                     losses.append(loss_item[0])
                 loss = sum(losses)
                 test_loss+=loss.item()
-                print("epoch:%d/%d, batch:%d/%d, test_loss:%f" % (epoch, args.nepoch, i_test, len(test_loader), loss.item()))
+                # print("epoch:%d/%d, batch:%d/%d, test_loss:%f" % (epoch, args.nepoch, i_test, len(test_loader), loss.item()))
 
         test_loss/=len(test_loader)
         test_losses.append(test_loss)
 
         if test_loss<min_loss:
-            torch.save(net.state_dict(), 'weights/face_mask_weights.pth')
+            torch.save(net.state_dict(), 'weights/face_mask_weights0.pth')
         print("epoch:%d/%d, train_loss:%f， test_loss:%f" % (epoch, args.nepoch, train_loss, test_loss))
     plot_loss_curve(train_losses,test_losses,len(train_loader))
 
